@@ -1,0 +1,7 @@
+ipython
+ipdb
+distribute
+nose
+pep8
+pyflakes
+mock

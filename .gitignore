@@ -1,0 +1,12 @@
+*.py[c,o]
+*~
+\#*\#
+\.\#*
+TAGS
+docs/_build
+docs/api
+.coverage
+coverage
+.DS_Store
+.vagrant
+manifests/build
