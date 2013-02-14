@@ -10,3 +10,4 @@ coverage
 .DS_Store
 .vagrant
 manifests/build
+*.db

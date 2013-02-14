@@ -26,7 +26,7 @@ class TestConversion(unittest.TestCase):
         """Test :py:class:``exchange.conversion.ExchangeRates``"""
         from exchange.conversion import ExchangeRates
         from exchange.models import Currency, ExchangeRate
-        usd = Currency.objects.get(code='USD')
+        usd = Currency.objects.create(code='USD')
         gbp = Currency.objects.create(code='GBP')
         afn = Currency.objects.create(code='AFN')
 

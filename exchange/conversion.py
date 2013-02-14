@@ -1,3 +1,6 @@
+from exchange.models import Currency, ExchangeRate
+
+
 def convert(price, currency):
     """Converts the price of a currency to another one using exhange rates
 

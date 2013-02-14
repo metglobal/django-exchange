@@ -1,7 +1,7 @@
 ipython
 ipdb
 distribute
-nose
+django-nose
 pep8
 pyflakes
 mock
