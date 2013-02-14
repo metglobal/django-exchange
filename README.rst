@@ -58,8 +58,8 @@ Take a look at the example below::
 
     >>> from exchange.conversion import Price, convert
     >>> my_price = Price(50, 'USD')
-    >>> convert(my_price, 'YEN')
-    4678.50
+    >>> my_price.convert('YEN')
+    <Price (4678.50 YEN)>
 
 Documentation
 -------------

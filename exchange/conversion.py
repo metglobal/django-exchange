@@ -10,9 +10,12 @@ def convert(price, currency):
     :param currency: ISO-4217 currency code
     :param type: str
 
+    :returns: converted price instance
+    :rtype: ``Price``
+
     """
     rates = ExchangeRates.get_instance()
-    return price.value * rates[price.currency][currency]
+    return Price(price.value * rates[price.currency][currency], currency)
 
 
 class Price(object):
@@ -38,8 +41,14 @@ class Price(object):
         :param currency: ISO-4217 currency code
         :param type: str
 
+        :returns: converted price instance
+        :rtype: ``Price``
+
         """
         return convert(self, currency)
+
+    def __repr__(self):
+        return '<Price (%s %s)>' % (self.value, self.currency)
 
 
 class ExchangeRates(dict):

@@ -11,7 +11,9 @@ class TestConversion(unittest.TestCase):
             exchange_rates.get_instance.return_value = \
                 {'USD': {'GBP': 0.5}}
             price = Price(3, 'USD')
-            self.assertEqual(convert(price, 'GBP'), 1.50)
+            converted_price = convert(price, 'GBP')
+            self.assertEqual(converted_price.value, 1.50)
+            self.assertEqual(converted_price.currency, 'GBP')
 
     def test_price(self):
         """Test :py:class:``exchange.conversion.Price``"""
@@ -20,7 +22,9 @@ class TestConversion(unittest.TestCase):
             exchange_rates.get_instance.return_value = \
                 {'USD': {'GBP': 0.5}}
             price = Price(3, 'USD')
-            self.assertEqual(price.convert('GBP'), 1.50)
+            converted_price = price.convert('GBP')
+            self.assertEqual(converted_price.value, 1.50)
+            self.assertEqual(converted_price.currency, 'GBP')
 
     def test_exchangerates(self):
         """Test :py:class:``exchange.conversion.ExchangeRates``"""
