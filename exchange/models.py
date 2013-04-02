@@ -6,6 +6,9 @@ class Currency(models.Model):
     code = models.CharField(max_length=3, unique=True)
     name = models.CharField(max_length=64)
 
+    class Meta:
+        verbose_name_plural = 'currencies'
+
     def __unicode__(self):
         return self.code
 
