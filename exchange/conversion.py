@@ -1,7 +1,69 @@
-from exchange.models import Currency, ExchangeRate
+from django.core.cache import cache
+from django.conf import settings
+
+from exchange.models import ExchangeRate
+
+CACHE_ENABLED_KEY = 'EXCHANGE_CACHE_ENABLED'
+CACHE_KEY_KEY = 'EXCHANGE_CACHE_KEY'
+
+CACHE_ENABLED = True
+CACHE_KEY = 'exchange_rates'
 
 
-def convert(price, currency):
+Price = namedtuple('Price', ('value', 'currency'))
+
+
+class ExchangeRateNotFound(Exception):
+
+    def __init__(self, source_currency, target_currency):
+        super(ExchangeRateNotFound, self).__init__(
+            '%s -> %s' % (source_currency, target_currency))
+
+
+def get_cache_key():
+    return getattr(settings, self.CACHE_KEY_KEY, CACHE_KEY)
+
+
+def get_cache_enabled():
+    return getattr(settings, self.CACHE_ENABLED_KEY, CACHE_ENABLED)
+
+
+def populate_exchange_rates():
+    table = {}
+    rates = ExchangeRate.objects.all().select_related('source', 'target')
+    for rate in rates:
+        if rate.source.code not in table:
+            table[rate.source.code] = {}
+        table[rate.source.code][rate.target.code] = rate.rate
+    return table
+
+
+def get_exchangerate_cache():
+    if get_cache_enabled():
+        cache_key = get_cache_key()
+        exchange_rates = cache.get(cache_key)
+        if not exchange_rates:
+            exchange_rates = populate_exchange_rates()
+            cache.set(cache_key, exchange_rates)
+    else:
+        exchange_rates = populate_exchange_rates()
+    return exchange_rates
+
+
+def reset_exhangerate_cache():
+    cache_key = getattr(settings, self.CACHE_KEY_KEY, CACHE_KEY)
+
+
+def get_rate(source_currency, target_currency):
+    exchange_rate_cache = get_exchangerate_cache()
+    try:
+        source = exchange_rate_cache[source_currency]
+        return source.get(target_currency)
+    except KeyError:
+        raise ExchangeRateNotFound(source_currency, target_currency)
+
+
+def convert(value, source_currency, target_currency):
     """Converts the price of a currency to another one using exhange rates
 
     :param price: the price value
@@ -10,71 +72,14 @@ def convert(price, currency):
     :param currency: ISO-4217 currency code
     :param type: str
 
-    :returns: converted price instance
-    :rtype: ``Price``
+    :returns: converted value
+    :rtype: decimal
 
     """
-    rates = ExchangeRates.get_instance()
-    return Price(price.value * rates[price.currency][currency], currency)
+    rate = get_rate(source_currency, target_currency)
+    return value * rate
 
 
-class Price(object):
-    """Class holds the information of a price value with its currency"""
-
-    def __init__(self, value, currency):
-        """Convenient constrcutor
-
-        :param value: the price value
-        :param type: decimal
-
-        :param currency: ISO-4217 currency code
-        :param type: str
-
-        """
-        self.value = value
-        self.currency = currency
-
-    def convert(self, currency):
-        """Converts the price of a currency hold by currenct instance to
-        another one
-
-        :param currency: ISO-4217 currency code
-        :param type: str
-
-        :returns: converted price instance
-        :rtype: ``Price``
-
-        """
-        return convert(self, currency)
-
-    def __repr__(self):
-        return '<Price (%s %s)>' % (self.value, self.currency)
-
-
-class ExchangeRates(dict):
-    """Singleton dictionary implementation which hold the exchange rates
-    populated from corresponding database models.
-
-    """
-    _instance = None
-
-    @classmethod
-    def get_instance(cls):
-        """Singleton instance method"""
-        if not cls._instance:
-            cls._instance = ExchangeRates()
-            cls._instance.populate()
-        return cls._instance
-
-    def reset(self):
-        """Clears all the exchange rate data"""
-        self.clear()
-
-    def populate(self):
-        """Clears and populates all the exchange rate data via database"""
-        self.reset()
-        currencies = Currency.objects.all()
-        for source_currency in currencies:
-            self[source_currency.code] = {}
-            for rate in source_currency.rates.all():
-                self[source_currency.code][rate.target.code] = rate.rate
+def convert_price(price, target_currency):
+    return Price(convert(price.value, price.currency, target_currency),
+                 target_currency)
