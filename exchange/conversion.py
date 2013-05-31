@@ -1,4 +1,4 @@
-from exchange.models import Currency, ExchangeRate
+from exchange.models import Currency
 
 
 def convert(price, currency):
@@ -14,8 +14,14 @@ def convert(price, currency):
     :rtype: ``Price``
 
     """
-    rates = ExchangeRates.get_instance()
-    return Price(price.value * rates[price.currency][currency], currency)
+    # If price currency and target currency is same
+    # return given currency as is
+    if price.currency == currency:
+        result = price
+    else:
+        rates = ExchangeRates.get_instance()
+        result = Price(price.value * rates[price.currency][currency], currency)
+    return result
 
 
 class Price(object):
