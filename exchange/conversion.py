@@ -1,13 +1,16 @@
 from exchange.models import Currency
 
 
-def convert(price, currency):
+def convert_value(value, source_currency, target_currency):
     """Converts the price of a currency to another one using exhange rates
 
     :param price: the price value
     :param type: decimal
 
-    :param currency: ISO-4217 currency code
+    :param source_currency: source ISO-4217 currency code
+    :param type: str
+
+    :param target_currency: target ISO-4217 currency code
     :param type: str
 
     :returns: converted price instance
@@ -16,12 +19,32 @@ def convert(price, currency):
     """
     # If price currency and target currency is same
     # return given currency as is
-    if price.currency == currency:
-        result = price
+    if source_currency == target_currency:
+        result = value
     else:
         rates = ExchangeRates.get_instance()
-        result = Price(price.value * rates[price.currency][currency], currency)
+        result = value * rates[source_currency][target_currency]
     return result
+
+
+def convert(price, currency):
+    """Shorthand function converts a price object instance of a source
+    currency to target currency
+
+    :param price: the price value
+    :param type: decimal
+
+    :param currency: target ISO-4217 currency code
+    :param type: str
+
+    :returns: converted price instance
+    :rtype: ``Price``
+
+    """
+    # If price currency and target currency is same
+    # return given currency as is
+    value = convert_value(price.value, price.currency, currency)
+    return Price(value, currency)
 
 
 class Price(object):
