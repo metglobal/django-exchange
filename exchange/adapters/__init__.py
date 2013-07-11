@@ -1,8 +1,29 @@
 import logging
 
+from django.conf import settings
+
 from exchange.models import Currency, ExchangeRate
 
+
 logger = logging.getLogger(__name__)
+
+
+EXCHANGE_ADAPTER_CLASS_KEY = 'EXCHANGE_ADAPTER_CLASS'
+EXCHANGE_DEFAULT_ADAPTER_CLASS = \
+    'exchange.adapters.openexchangerates.OpenExchangeRatesAdapter'
+
+
+def update(adapter_class_name=None):
+    adapter_class_name = (adapter_class_name or
+                          getattr(settings,
+                                  EXCHANGE_ADAPTER_CLASS_KEY,
+                                  EXCHANGE_DEFAULT_ADAPTER_CLASS))
+
+    adapter_class = import_class(adapter_class_name)
+    adapter = adapter_class()
+    if not isinstance(adapter, BaseAdapter):
+        raise TypeError("invalid adapter class: %s" % adapter_class_name)
+    adapter.update()
 
 
 class BaseAdapter(object):
