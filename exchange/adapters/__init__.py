@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 
+from exchange.utils import import_class
 from exchange.models import Currency, ExchangeRate
 
 
