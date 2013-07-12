@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='django-exchange',
     packages=find_packages(),
-    version='0.0.5',
+    version='0.1.0',
     description='currency, exchange rates and conversions support for django',
     author='Metglobal',
     author_email='kadir.pekel@metglobal.com',
