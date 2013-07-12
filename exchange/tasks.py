@@ -1,8 +1,8 @@
 import celery
 
-from exchange.adapters import update
+from exchange.conversion import update_rates
 
 
 @celery.task
 def update_task(adapter_class_name=None):
-    update(adapter_class_name=adapter_class_name)
+    update_rates(adapter_class_name=adapter_class_name)

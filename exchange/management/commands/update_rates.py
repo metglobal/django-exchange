@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from exchange.adapters import update
+from exchange.conversion import update_rates
 
 
 class Command(BaseCommand):
@@ -10,6 +10,6 @@ class Command(BaseCommand):
         """Handle command"""
 
         try:
-            update()
+            update_rates()
         except Exception, e:
             raise CommandError(e)

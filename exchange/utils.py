@@ -1,6 +1,3 @@
-from exchange.models import Currency
-
-
 def import_class(class_path):
     """imports and returns given class string.
 

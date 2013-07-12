@@ -1,7 +1,56 @@
-from exchange.models import Currency
+from collections import namedtuple
+
+from django.conf import settings
+
+from exchange.adapters import BaseAdapter
+from exchange.utils import import_class
+from exchange.models import ExchangeRate
+from exchange.cache import (update_rates_cached, get_rate_cached,
+                            get_rates_cached, CACHE_ENABLED)
+
+Price = namedtuple('Price', ('value', 'currency'))
+
+EXCHANGE_ADAPTER_CLASS_KEY = 'EXCHANGE_ADAPTER_CLASS'
+EXCHANGE_DEFAULT_ADAPTER_CLASS = \
+    'exchange.adapters.openexchangerates.OpenExchangeRatesAdapter'
 
 
-def convert_value(value, source_currency, target_currency):
+def update_rates(adapter_class_name=None):
+    adapter_class_name = (adapter_class_name or
+                          getattr(settings,
+                                  EXCHANGE_ADAPTER_CLASS_KEY,
+                                  EXCHANGE_DEFAULT_ADAPTER_CLASS))
+
+    adapter_class = import_class(adapter_class_name)
+    adapter = adapter_class()
+    if not isinstance(adapter, BaseAdapter):
+        raise TypeError("invalid adapter class: %s" % adapter_class_name)
+    adapter.update()
+
+    if CACHE_ENABLED:
+        update_rates_cached()
+
+
+def convert_values(args_list):
+    value_map = {}
+    rate_map = {}
+    conversions = {args[:2] for args in args_list}
+
+    if CACHE_ENABLED:
+        rate_map = get_rates_cached(conversions)
+
+    for args in args_list:
+        conversion = args[:2]
+        rate = rate_map.get(conversion)
+        if not rate:
+            rate = ExchangeRate.objects.get(source__code=conversion[0],
+                                            target__code=conversion[1]).rate
+        value_map[args] = rate
+
+    return value_map
+
+
+def convert_value(source_currency, target_currency, value):
     """Converts the price of a currency to another one using exhange rates
 
     :param price: the price value
@@ -20,11 +69,17 @@ def convert_value(value, source_currency, target_currency):
     # If price currency and target currency is same
     # return given currency as is
     if source_currency == target_currency:
-        result = value
-    else:
-        rates = ExchangeRates.get_instance()
-        result = value * rates[source_currency][target_currency]
-    return result
+        return value
+
+    rate = None
+    if CACHE_ENABLED:
+        rate = get_rate_cached(source_currency, target_currency)
+
+    if not rate:
+        rate = ExchangeRate.objects.get(source__code=source_currency,
+                                        target__code=target_currency).rate
+
+    return value * rate
 
 
 def convert(price, currency):
@@ -43,67 +98,5 @@ def convert(price, currency):
     """
     # If price currency and target currency is same
     # return given currency as is
-    value = convert_value(price.value, price.currency, currency)
+    value = convert_value(price.currency, currency, price.value)
     return Price(value, currency)
-
-
-class Price(object):
-    """Class holds the information of a price value with its currency"""
-
-    def __init__(self, value, currency):
-        """Convenient constrcutor
-
-        :param value: the price value
-        :param type: decimal
-
-        :param currency: ISO-4217 currency code
-        :param type: str
-
-        """
-        self.value = value
-        self.currency = currency
-
-    def convert(self, currency):
-        """Converts the price of a currency hold by currenct instance to
-        another one
-
-        :param currency: ISO-4217 currency code
-        :param type: str
-
-        :returns: converted price instance
-        :rtype: ``Price``
-
-        """
-        return convert(self, currency)
-
-    def __repr__(self):
-        return '<Price (%s %s)>' % (self.value, self.currency)
-
-
-class ExchangeRates(dict):
-    """Singleton dictionary implementation which hold the exchange rates
-    populated from corresponding database models.
-
-    """
-    _instance = None
-
-    @classmethod
-    def get_instance(cls):
-        """Singleton instance method"""
-        if not cls._instance:
-            cls._instance = ExchangeRates()
-            cls._instance.populate()
-        return cls._instance
-
-    def reset(self):
-        """Clears all the exchange rate data"""
-        self.clear()
-
-    def populate(self):
-        """Clears and populates all the exchange rate data via database"""
-        self.reset()
-        currencies = Currency.objects.all()
-        for source_currency in currencies:
-            self[source_currency.code] = {}
-            for rate in source_currency.rates.all():
-                self[source_currency.code][rate.target.code] = rate.rate
