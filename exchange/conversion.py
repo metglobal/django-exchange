@@ -34,23 +34,23 @@ def update_rates(adapter_class_name=None):
 def convert_values(args_list):
     value_map = {}
     rate_map = {}
-    conversions = {args[:2] for args in args_list}
+    conversions = {args[1:3] for args in args_list}
 
     if CACHE_ENABLED:
         rate_map = get_rates_cached(conversions)
 
     for args in args_list:
-        conversion = args[:2]
+        conversion = args[1:3]
         rate = rate_map.get(conversion)
         if not rate:
-            rate = ExchangeRate.objects.get(source__code=conversion[0],
-                                            target__code=conversion[1]).rate
+            rate = ExchangeRate.objects.get(source__code=conversion[1],
+                                            target__code=conversion[2]).rate
         value_map[args] = rate
 
     return value_map
 
 
-def convert_value(source_currency, target_currency, value):
+def convert_value(value, source_currency, target_currency):
     """Converts the price of a currency to another one using exhange rates
 
     :param price: the price value
@@ -98,5 +98,5 @@ def convert(price, currency):
     """
     # If price currency and target currency is same
     # return given currency as is
-    value = convert_value(price.currency, currency, price.value)
+    value = convert_value(price.value, price.currency, currency)
     return Price(value, currency)
