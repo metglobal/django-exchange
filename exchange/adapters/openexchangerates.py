@@ -6,7 +6,6 @@ from openexchangerates import OpenExchangeRatesClient
 from django.conf import settings
 
 from exchange.adapters import BaseAdapter
-from exchange.models import Currency, ExchangeRate
 
 logger = logging.getLogger(__name__)
 
