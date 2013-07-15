@@ -43,11 +43,21 @@ def convert_values(args_list):
         conversion = args[1:3]
         rate = rate_map.get(conversion)
         if not rate:
-            rate = ExchangeRate.objects.get(source__code=conversion[1],
-                                            target__code=conversion[2]).rate
+            rate = ExchangeRate.objects.get_rate(conversion[1], conversion[2])
         value_map[args] = rate
 
     return value_map
+
+
+def get_rate(source_currency, target_currency):
+    rate = None
+    if CACHE_ENABLED:
+        rate = get_rate_cached(source_currency, target_currency)
+
+    if not rate:
+        rate = ExchangeRate.objects.get_rate(source_currency, target_currency)
+
+    return rate
 
 
 def convert_value(value, source_currency, target_currency):
@@ -71,13 +81,7 @@ def convert_value(value, source_currency, target_currency):
     if source_currency == target_currency:
         return value
 
-    rate = None
-    if CACHE_ENABLED:
-        rate = get_rate_cached(source_currency, target_currency)
-
-    if not rate:
-        rate = ExchangeRate.objects.get(source__code=source_currency,
-                                        target__code=target_currency).rate
+    rate = get_rate(source_currency, target_currency)
 
     return value * rate
 
