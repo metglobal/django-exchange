@@ -1,5 +1,6 @@
 from django.db import models
 from exchange.managers import ExchangeRateManager
+from exchange.iso_4217 import code_list
 
 
 class Currency(models.Model):
@@ -12,6 +13,9 @@ class Currency(models.Model):
 
     def __unicode__(self):
         return self.code
+
+    def get_numeric_code(self):
+        return code_list[self.code]  # Let it raise an exception
 
 
 class ExchangeRate(models.Model):
