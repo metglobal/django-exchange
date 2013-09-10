@@ -32,8 +32,8 @@ Populating Data
 ---------------
 
 django-exchange supports populating currency and exchange rates using a service provider
-automatically. Currently it has built in support for openexhangerates.org service. It is
-only a matter of supplying an api key obtained from http://openexhangerates.org as django
+automatically. Currently it has built in support for openexchangerates.org service. It is
+only a matter of supplying an api key obtained from http://openexchangerates.org as django
 settings using the key ``OPENEXCHANGERATES_API_KEY``::
 
     OPENEXCHANGERATES_API_KEY = '<YOU_API_KEY_HERE>'
