@@ -1,4 +1,5 @@
 from collections import namedtuple
+from operator import itemgetter
 
 from django.conf import settings
 
@@ -32,21 +33,53 @@ def update_rates(adapter_class_name=None):
 
 
 def convert_values(args_list):
+    """convert_value in bulk.
+
+    :param args_list: list of value, source, target currency pairs
+
+    :return: map of converted values
+    """
+    rate_map = get_rates(map(itemgetter(1, 2), args_list))
     value_map = {}
-    rate_map = {}
-    conversions = {args[1:3] for args in args_list}
-
-    if CACHE_ENABLED:
-        rate_map = get_rates_cached(conversions)
-
-    for args in args_list:
-        conversion = args[1:3]
-        rate = rate_map.get(conversion)
-        if not rate:
-            rate = ExchangeRate.objects.get_rate(conversion[1], conversion[2])
-        value_map[args] = rate
+    for value, source, target in args_list:
+        args = (value, source, target)
+        if source == target:
+            value_map[args] = value
+        else:
+            value_map[args] = value * rate_map[(source, target)]
 
     return value_map
+
+
+def get_rates(currencies):
+    sources = []
+    targets = []
+    if CACHE_ENABLED:
+        rate_map = get_rates_cached(currencies)
+        for (source, target), rate in rate_map.items():
+            if not rate:
+                sources.append(source)
+                targets.append(target)
+    else:
+        rate_map = {c: None for c in currencies}
+        sources = map(itemgetter(0), currencies)
+        targets = map(itemgetter(1), currencies)
+
+    rates = ExchangeRate.objects.filter(
+        source__code__in=sources,
+        target__code__in=targets).values_list(
+        'source__code',
+        'target__code',
+        'rate')
+
+    for source, target, rate in rates:
+        key = (source, target)
+        # Some other combinations that are not in currencies originally
+        # may have been fetched from the query
+        if key in rate_map:
+            rate_map[key] = rate
+
+    return rate_map
 
 
 def get_rate(source_currency, target_currency):
@@ -61,7 +94,7 @@ def get_rate(source_currency, target_currency):
 
 
 def convert_value(value, source_currency, target_currency):
-    """Converts the price of a currency to another one using exhange rates
+    """Converts the price of a currency to another one using exchange rates
 
     :param price: the price value
     :param type: decimal
