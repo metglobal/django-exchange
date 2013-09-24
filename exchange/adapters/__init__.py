@@ -48,7 +48,7 @@ class BaseAdapter(object):
         :rtype: list
 
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def get_exchangerates(self, base):
         """Subclasses must implement this to provide corresponding exchange
@@ -58,4 +58,4 @@ class BaseAdapter(object):
         :rtype: list
 
         """
-        raise NotImplemented()
+        raise NotImplementedError()
