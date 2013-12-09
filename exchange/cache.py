@@ -22,6 +22,8 @@ CACHE_TIMEOUT = 0  # Not configurable at all
 
 cache = get_cache(CACHE_DATABASE)
 
+local_cache = {}
+
 
 def _get_cache_key(source_currency, target_currency):
     return ':'.join([CACHE_KEY_PREFIX, source_currency, target_currency])
@@ -32,11 +34,18 @@ def update_rates_cached():
     cache_map = {_get_cache_key(rate.source.code, rate.target.code): rate.rate
                  for rate in rates}
     cache.set_many(cache_map, timeout=CACHE_TIMEOUT)
+    local_cache.clear()
     return cache_map
 
 
 def get_rate_cached(source_currency, target_currency):
-    return cache.get(_get_cache_key(source_currency, target_currency))
+    key = _get_cache_key(source_currency, target_currency)
+    try:
+        rate = local_cache[key]
+    except KeyError:
+        rate = cache.get(key)
+        local_cache[key] = rate
+    return rate
 
 
 def get_rates_cached(args_list):
