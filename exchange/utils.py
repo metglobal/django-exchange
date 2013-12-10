@@ -26,13 +26,14 @@ def insert_many(objects, using="default"):
     of the same Django model. Note that save is not called and signals
     on the model are not raised.
 
-    From: http://people.iola.dk/olau/python/bulkops.py
+    Mostly from: http://people.iola.dk/olau/python/bulkops.py
     """
     if not objects:
         return
 
     import django.db.models
     from django.db import connections
+    from django.db import transaction
     con = connections[using]
 
     model = objects[0].__class__
@@ -49,6 +50,7 @@ def insert_many(objects, using="default"):
     placeholders = ",".join(("%s",) * len(fields))
     con.cursor().executemany("insert into %s (%s) values (%s)"
                              % (table, column_names, placeholders), parameters)
+    transaction.commit_unless_managed(using=using)
 
 
 def update_many(objects, fields=[], using="default"):
@@ -57,13 +59,14 @@ def update_many(objects, fields=[], using="default"):
     Objects must be of the same Django model. Note that save is not
     called and signals on the model are not raised.
 
-    From: http://people.iola.dk/olau/python/bulkops.py
+    Mostly from: http://people.iola.dk/olau/python/bulkops.py
     """
     if not objects:
         return
 
     import django.db.models
     from django.db import connections
+    from django.db import transaction
     con = connections[using]
 
     names = fields
@@ -88,3 +91,4 @@ def update_many(objects, fields=[], using="default"):
                              % (table, assignments,
                                 con.ops.quote_name(meta.pk.column)),
                              parameters)
+    transaction.commit_unless_managed(using=using)
