@@ -2,6 +2,7 @@ import logging
 
 from exchange.models import Currency, ExchangeRate
 
+from exchange.utils import update_many, insert_many
 
 logger = logging.getLogger(__name__)
 
@@ -24,22 +25,30 @@ class BaseAdapter(object):
             if created:
                 logger.info('currency: %s created', code)
 
+        pairs = set(ExchangeRate.objects.values_list('source__code',
+                                                     'target__code'))
+        updates = []
+        inserts = []
         for source in Currency.objects.all():
             exchange_rates = self.get_exchangerates(source.code) or []
             for code, rate in exchange_rates:
-                try:
-                    target = Currency.objects.get(code=code)
-                    exchange_rate = ExchangeRate.objects.get(source=source,
-                                                             target=target)
-                    exchange_rate.rate = rate
-                    exchange_rate.save()
-                    logger.info('exchange rate updated %s/%s=%s'
-                                % (source, target, rate))
-                except ExchangeRate.DoesNotExist:
-                    exchange_rate = ExchangeRate.objects.create(
-                        source=source, target=target, rate=rate)
-                    logger.info('exchange rate created %s/%s=%s'
-                                % (source, target, rate))
+                target = Currency.objects.get(code=code)
+                exchange_rate = ExchangeRate(source=source,
+                                             target=target,
+                                             rate=rate)
+                if (source.code, target.code) in pairs:
+                    updates.append(exchange_rate)
+                    logger.debug('exchange rate updated %s/%s=%s'
+                                 % (source, target, rate))
+                else:
+                    inserts.append(exchange_rate)
+                    logger.debug('exchange rate created %s/%s=%s'
+                                 % (source, target, rate))
+
+            logger.info('exchange rates updated for %s' % source.code)
+        update_many(updates)
+        insert_many(inserts)
+        logger.info('saved rates to db')
 
     def get_currencies(self):
         """Subclasses must implement this to provide all currency data
