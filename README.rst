@@ -40,13 +40,8 @@ settings using the key ``OPENEXCHANGERATES_API_KEY``::
 
 Now you can populate you currency and exchange rates magically by typing::
 
-    $ python manage.py update_exchange_rates
+    $ python manage.py update_rates
 
-If you want to use you own service provider, you should consider implementing
-``exchange.adapters.BaseAdapter`` class and pass you implementation class path
-as an argument to ``update_exchange_rates`` command::
-
-    $ python manage.py update_exchange_rates -c myproj.providers.MyProvider
 
 Quickstart
 -----------
