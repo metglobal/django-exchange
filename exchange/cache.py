@@ -44,7 +44,8 @@ def get_rate_cached(source_currency, target_currency):
         rate = local_cache[key]
     except KeyError:
         rate = cache.get(key)
-        local_cache[key] = rate
+        if rate:
+            local_cache[key] = rate
     return rate
 
 
