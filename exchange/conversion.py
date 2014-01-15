@@ -7,7 +7,7 @@ from exchange.adapters import BaseAdapter
 from exchange.utils import import_class
 from exchange.models import ExchangeRate
 from exchange.cache import (update_rates_cached, get_rate_cached,
-                            get_rates_cached, CACHE_ENABLED)
+                            get_rates_cached, CACHE_ENABLED, set_cached_rate)
 
 Price = namedtuple('Price', ('value', 'currency'))
 
@@ -89,6 +89,8 @@ def get_rate(source_currency, target_currency):
 
     if not rate:
         rate = ExchangeRate.objects.get_rate(source_currency, target_currency)
+        if CACHE_ENABLED:
+            set_cached_rate(source_currency, target_currency, rate)
 
     return rate
 
