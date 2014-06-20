@@ -53,7 +53,7 @@ Take a look at the example below::
 
     >>> from exchange.conversion import Price, convert
     >>> my_price = Price(50, 'USD')
-    >>> my_price.convert('YEN')
+    >>> convert(my_price, 'EUR')
     <Price (4678.50 YEN)>
 
 Documentation
