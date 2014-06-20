@@ -54,7 +54,7 @@ Take a look at the example below::
     >>> from exchange.conversion import Price, convert
     >>> my_price = Price(50, 'USD')
     >>> convert(my_price, 'EUR')
-    <Price (4678.50 YEN)>
+    <Price(value=Decimal('36.68585000'), currency='EUR')>
 
 Documentation
 -------------
