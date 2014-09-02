@@ -13,9 +13,9 @@ setup(
     author_email='kadir.pekel@metglobal.com',
     packages=find_packages(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
-    extras_require={
-        'openexchangerates': ["openexchangerates"]
-    },
+    install_requires=[
+        'openexchangerates'
+    ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
