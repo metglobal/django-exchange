@@ -38,13 +38,19 @@ def update_rates_cached():
     return cache_map
 
 
+def set_cached_rate(source_currency, target_currency, rate):
+    key = _get_cache_key(source_currency, target_currency)
+    cache.set(key, rate)
+
+
 def get_rate_cached(source_currency, target_currency):
     key = _get_cache_key(source_currency, target_currency)
     try:
         rate = local_cache[key]
     except KeyError:
         rate = cache.get(key)
-        local_cache[key] = rate
+        if rate:
+            local_cache[key] = rate
     return rate
 
 

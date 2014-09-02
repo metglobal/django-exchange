@@ -26,8 +26,11 @@ class BaseAdapter(object):
             if created:
                 logger.info('currency: %s created', code)
 
-        pairs = set(ExchangeRate.objects.values_list('source__code',
-                                                     'target__code'))
+        existing = ExchangeRate.objects.values('source__code',
+                                               'target__code',
+                                               'id')
+        existing = {(d['source__code'], d['target__code']): d['id']
+                    for d in existing}
         usd_exchange_rates = dict(self.get_exchangerates('USD'))
 
         updates = []
@@ -43,7 +46,8 @@ class BaseAdapter(object):
                                              target=target,
                                              rate=rate)
 
-                if (source.code, target.code) in pairs:
+                if (source.code, target.code) in existing:
+                    exchange_rate.id = existing[(source.code, target.code)]
                     updates.append(exchange_rate)
                     logger.debug('exchange rate updated %s/%s=%s'
                                  % (source, target, rate))
