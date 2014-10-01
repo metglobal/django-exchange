@@ -1,3 +1,7 @@
+import functools
+import time
+
+
 def import_class(class_path):
     """imports and returns given class string.
 
@@ -92,3 +96,21 @@ def update_many(objects, fields=[], using="default"):
                                 con.ops.quote_name(meta.pk.column)),
                              parameters)
     transaction.commit_unless_managed(using=using)
+
+
+def memoize(ttl=None):
+    def decorator(obj):
+        cache = obj.cache = {}
+
+        @functools.wraps(obj)
+        def memoizer(*args, **kwargs):
+            now = time.time()
+            key = str(args) + str(kwargs)
+            if key not in cache:
+                cache[key] = (obj(*args, **kwargs), now)
+            value, last_update = cache[key]
+            if ttl and (now - last_update) > ttl:
+                cache[key] = (obj(*args, **kwargs), now)
+            return cache[key]
+        return memoizer
+    return decorator
