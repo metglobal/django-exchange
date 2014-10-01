@@ -1,10 +1,11 @@
 from collections import namedtuple
 from operator import itemgetter
+from datetime import timedelta
 
 from django.conf import settings
 
 from exchange.adapters import BaseAdapter
-from exchange.utils import import_class
+from exchange.utils import import_class, memoize
 from exchange.models import ExchangeRate
 from exchange.cache import (update_rates_cached, get_rate_cached,
                             get_rates_cached, CACHE_ENABLED, set_cached_rate)
@@ -82,6 +83,7 @@ def get_rates(currencies):
     return rate_map
 
 
+@memoize(ttl=timedelta(minutes=10))
 def get_rate(source_currency, target_currency):
     rate = None
     if CACHE_ENABLED:
