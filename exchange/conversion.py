@@ -83,7 +83,7 @@ def get_rates(currencies):
     return rate_map
 
 
-@memoize(ttl=timedelta(minutes=10))
+@memoize(ttl=timedelta(minutes=1))
 def get_rate(source_currency, target_currency):
     rate = None
     if CACHE_ENABLED:
