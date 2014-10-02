@@ -99,6 +99,9 @@ def update_many(objects, fields=[], using="default"):
 
 
 def memoize(ttl=None):
+    """ Cache the result of the function call with given args for until
+        ttl (datetime.timedelta) expires.
+    """
     def decorator(obj):
         cache = obj.cache = {}
 
