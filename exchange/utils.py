@@ -111,6 +111,6 @@ def memoize(ttl=None):
             value, last_update = cache[key]
             if ttl and (now - last_update) > ttl:
                 cache[key] = (obj(*args, **kwargs), now)
-            return cache[key]
+            return cache[key][0]
         return memoizer
     return decorator
