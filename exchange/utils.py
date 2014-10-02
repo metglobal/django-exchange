@@ -1,5 +1,5 @@
 import functools
-import time
+from datetime import datetime
 
 
 def import_class(class_path):
@@ -104,7 +104,7 @@ def memoize(ttl=None):
 
         @functools.wraps(obj)
         def memoizer(*args, **kwargs):
-            now = time.time()
+            now = datetime.now()
             key = str(args) + str(kwargs)
             if key not in cache:
                 cache[key] = (obj(*args, **kwargs), now)
