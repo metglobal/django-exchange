@@ -24,7 +24,7 @@ class BaseAdapter(object):
             _, created = Currency.objects.get_or_create(
                 code=code, defaults={'name': name})
             if created:
-                logger.info('currency: %s created', code)
+                logger.debug('currency: %s created', code)
 
         existing = ExchangeRate.objects.values('source__code',
                                                'target__code',
@@ -56,19 +56,19 @@ class BaseAdapter(object):
                     logger.debug('exchange rate created %s/%s=%s'
                                  % (source, target, rate))
 
-            logger.info('exchange rates updated for %s' % source.code)
-        logger.info("Updating %s rows" % len(updates))
+            logger.debug('exchange rates updated for %s' % source.code)
+        logger.debug("Updating %s rows" % len(updates))
         update_many(updates)
-        logger.info("Inserting %s rows" % len(inserts))
+        logger.debug("Inserting %s rows" % len(inserts))
         insert_many(inserts)
-        logger.info('saved rates to db')
+        logger.debug('saved rates to db')
 
     def _get_rate_through_usd(self, source, target, usd_rates):
         # from: https://openexchangerates.org/documentation#how-to-use
         # gbp_hkd = usd_hkd * (1 / usd_gbp)
         usd_source = usd_rates[source]
         usd_target = usd_rates[target]
-        rate = usd_target * (Decimal(1.0) / usd_source)
+        rate = Decimal(usd_target) * (Decimal(1.0) / Decimal(usd_source))
         rate = rate.quantize(Decimal('0.123456'))  # round to 6 decimal places
         return rate
 
