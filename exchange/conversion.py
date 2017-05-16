@@ -6,7 +6,6 @@ from django.conf import settings
 
 from exchange.adapters import BaseAdapter
 from exchange.utils import import_class, memoize
-from exchange.models import ExchangeRate
 from exchange.cache import (update_rates_cached, get_rate_cached,
                             get_rates_cached, CACHE_ENABLED, set_cached_rate)
 
@@ -53,6 +52,8 @@ def convert_values(args_list):
 
 
 def get_rates(currencies):
+    from exchange.models import ExchangeRate
+
     sources = []
     targets = []
     if CACHE_ENABLED:
@@ -85,6 +86,8 @@ def get_rates(currencies):
 
 @memoize(ttl=timedelta(minutes=1))
 def get_rate(source_currency, target_currency):
+    from exchange.models import ExchangeRate
+
     rate = None
     if CACHE_ENABLED:
         rate = get_rate_cached(source_currency, target_currency)

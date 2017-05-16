@@ -1,8 +1,6 @@
 import logging
 from decimal import Decimal
 
-from exchange.models import Currency, ExchangeRate
-
 from exchange.utils import update_many, insert_many
 
 logger = logging.getLogger(__name__)
@@ -19,6 +17,8 @@ class BaseAdapter(object):
         corresponding ``Currency`` and ``ExchangeRate`` models
 
         """
+        from exchange.models import Currency, ExchangeRate
+
         currencies = self.get_currencies()
 
         # Currencies which exist on db (not exist on currencies coming from
