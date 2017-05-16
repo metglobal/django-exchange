@@ -7,41 +7,41 @@ from exchange.adapters.openexchangerates import OpenExchangeRatesAdapter
 
 
 class OpenExchangeRatesAdapterTest(TestCase):
-
     def test_update(self):
-        with patch(
-            'exchange.adapters.openexchangerates.OpenExchangeRatesClient')\
-                as client:
-            currency_dict = {
-                'AED': 'United Arab Emirates Dirham',
-                'AFN': 'Afghan Afghani',
-                'USD': 'USA'
+        currency_dict = {
+            'AED': 'United Arab Emirates Dirham',
+            'AFN': 'Afghan Afghani',
+            'USD': 'USA'
+        }
+
+        latest_dict = {
+            'disclaimer': "<Disclaimer data>",
+            'license': "<License data>",
+            'timestamp': 1358150409,
+            'base': "USD",
+            'rates': {
+                'AED': 3.66,
+                'AFN': 51.22,
+                'USD': 1.0,
             }
-            latest_dict = {
-                'disclaimer': "<Disclaimer data>",
-                'license': "<License data>",
-                'timestamp': 1358150409,
-                'base': "USD",
-                'rates': {
-                    'AED': 3.66,
-                    'AFN': 51.22,
-                    'USD': 104.74
-                }
-            }
-            client.return_value.currencies.return_value = currency_dict
-            client.return_value.latest.return_value = latest_dict
-            adapter = OpenExchangeRatesAdapter()
+        }
+
+        adapter = OpenExchangeRatesAdapter()
+
+        with patch.object(adapter, 'client') as client:
+            client.currencies.return_value = currency_dict
+            client.latest.return_value = latest_dict
             adapter.update()
-            for k, v in currency_dict.items():
-                try:
-                    Currency.objects.get(code=k)
-                except Currency.DoesNotExist, detail:
-                    self.fail(detail)
+
+            self.assertEqual(Currency.objects.count(), len(currency_dict))
+            self.assertEqual(
+                list(Currency.objects.order_by('code').values_list('code', flat=True)),
+                sorted(currency_dict.keys())
+            )
+
             for k, v in latest_dict['rates'].items():
-                try:
-                    ExchangeRate.objects.get(
-                        source__code='USD',
-                        target__code=k,
-                        rate=str(v))
-                except ExchangeRate.DoesNotExist, detail:
-                    self.fail(detail)
+                rate = ExchangeRate.objects.get(
+                    source__code='USD',
+                    target__code=k,
+                )
+                self.assertEqual('%.2f' % rate.rate, '%.2f' % v)
