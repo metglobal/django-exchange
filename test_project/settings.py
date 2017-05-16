@@ -1,3 +1,5 @@
+SECRET_KEY = '<SECRET_KEY>'
+
 INSTALLED_APPS = ['exchange']
 
 DATABASES = {

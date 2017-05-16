@@ -20,6 +20,14 @@ class BaseAdapter(object):
 
         """
         currencies = self.get_currencies()
+
+        # Currencies which exist on db (not exist on currencies coming from
+        # openexchangerates api) should be deleted from db.
+        currencies_on_db = list(Currency.objects.all())
+        for currency in currencies_on_db:
+            if (currency.code, currency.name) not in currencies:
+                currency.delete()
+
         for code, name in currencies:
             _, created = Currency.objects.get_or_create(
                 code=code, defaults={'name': name})
@@ -35,9 +43,8 @@ class BaseAdapter(object):
 
         updates = []
         inserts = []
-        currencies = list(Currency.objects.all())
-        for source in currencies:
-            for target in currencies:
+        for source in currencies_on_db:
+            for target in currencies_on_db:
                 rate = self._get_rate_through_usd(source.code,
                                                   target.code,
                                                   usd_exchange_rates)

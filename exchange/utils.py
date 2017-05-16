@@ -35,13 +35,12 @@ def insert_many(objects, using="default"):
     if not objects:
         return
 
-    import django.db.models
-    from django.db import connections, transaction
+    from django.db import connections, models, transaction
     con = connections[using]
 
     model = objects[0].__class__
     fields = [f for f in model._meta.fields
-              if not isinstance(f, django.db.models.AutoField)]
+              if not isinstance(f, models.AutoField)]
     parameters = []
     for o in objects:
         params = tuple(f.get_db_prep_save(f.pre_save(o, True), connection=con)
@@ -69,8 +68,7 @@ def update_many(objects, fields=[], using="default"):
     if not objects:
         return
 
-    import django.db.models
-    from django.db import connections, transaction
+    from django.db import connections, models, transaction
     con = connections[using]
 
     names = fields
@@ -78,7 +76,7 @@ def update_many(objects, fields=[], using="default"):
     fields = [
         f
         for f in meta.fields
-        if not isinstance(f, django.db.models.AutoField) and (
+        if not isinstance(f, models.AutoField) and (
             not names or f.name in names
         )
     ]
