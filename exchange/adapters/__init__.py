@@ -20,6 +20,13 @@ class BaseAdapter(object):
 
         """
         currencies = self.get_currencies()
+
+        currencies_on_db = list(Currency.objects.all())
+
+        for currency in currencies_on_db:
+            if (currency.code, currency.name) not in currencies:
+                currency.delete()
+
         for code, name in currencies:
             _, created = Currency.objects.get_or_create(
                 code=code, defaults={'name': name})
