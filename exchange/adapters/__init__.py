@@ -1,5 +1,6 @@
 import logging
 from decimal import Decimal
+from django.conf import settings
 
 from exchange.models import Currency, ExchangeRate
 
@@ -13,6 +14,10 @@ class BaseAdapter(object):
     exchange rate models
 
     """
+
+    # If is true, delete currencies which not coming from API
+    DELETE_NONEXISTED_CURRENCIES_KEY = "DELETE_NONEXISTED_CURRENCIES"
+
     def update(self):
         """Actual update process goes here using auxialary ``get_currencies``
         and ``get_exchangerates`` methods. This method creates or updates
@@ -20,6 +25,18 @@ class BaseAdapter(object):
 
         """
         currencies = self.get_currencies()
+
+        is_deletable = getattr(settings,
+                               BaseAdapter.DELETE_NONEXISTED_CURRENCIES_KEY,
+                               False)
+
+        if is_deletable:
+            currencies_on_db = list(Currency.objects.all())
+
+            for currency in currencies_on_db:
+                if (currency.code, currency.name) not in currencies:
+                    currency.delete()
+
         for code, name in currencies:
             _, created = Currency.objects.get_or_create(
                 code=code, defaults={'name': name})
