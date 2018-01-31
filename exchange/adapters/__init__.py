@@ -15,9 +15,6 @@ class BaseAdapter(object):
 
     """
 
-    # If is true, delete currencies which not coming from API
-    DELETE_NONEXISTED_CURRENCIES_KEY = "DELETE_NONEXISTED_CURRENCIES"
-
     def update(self):
         """Actual update process goes here using auxialary ``get_currencies``
         and ``get_exchangerates`` methods. This method creates or updates
@@ -25,17 +22,6 @@ class BaseAdapter(object):
 
         """
         currencies = self.get_currencies()
-
-        is_deletable = getattr(settings,
-                               BaseAdapter.DELETE_NONEXISTED_CURRENCIES_KEY,
-                               False)
-
-        if is_deletable:
-            currencies_on_db = list(Currency.objects.all())
-
-            for currency in currencies_on_db:
-                if (currency.code, currency.name) not in currencies:
-                    currency.delete()
 
         for code, name in currencies:
             _, created = Currency.objects.get_or_create(
@@ -52,7 +38,6 @@ class BaseAdapter(object):
 
         updates = []
         inserts = []
-        currencies = list(Currency.objects.all())
         for source in currencies:
             for target in currencies:
                 rate = self._get_rate_through_usd(source.code,
