@@ -14,7 +14,6 @@ class BaseAdapter(object):
     exchange rate models
 
     """
-
     def update(self):
         """Actual update process goes here using auxialary ``get_currencies``
         and ``get_exchangerates`` methods. This method creates or updates
@@ -22,20 +21,18 @@ class BaseAdapter(object):
 
         """
         currencies = self.get_currencies()
-
+        currency_objects = {}
         for code, name in currencies:
-            _, created = Currency.objects.get_or_create(
+            currency_objects[code], created = Currency.objects.get_or_create(
                 code=code, defaults={'name': name})
             if created:
                 logger.info('currency: %s created', code)
-
         existing = ExchangeRate.objects.values('source__code',
                                                'target__code',
                                                'id')
         existing = {(d['source__code'], d['target__code']): d['id']
                     for d in existing}
         usd_exchange_rates = dict(self.get_exchangerates('USD'))
-
         updates = []
         inserts = []
         for source in currencies:
@@ -44,8 +41,8 @@ class BaseAdapter(object):
                                                   target.code,
                                                   usd_exchange_rates)
 
-                exchange_rate = ExchangeRate(source=source,
-                                             target=target,
+                exchange_rate = ExchangeRate(source=currency_objects[source.code],
+                                             target=currency_objects[target.code],
                                              rate=rate)
 
                 if (source.code, target.code) in existing:
