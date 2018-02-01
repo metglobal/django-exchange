@@ -4,6 +4,10 @@ from decimal import Decimal
 from django.conf import settings
 from exchange.adapters import BaseAdapter
 import requests
+from collections import namedtuple
+
+CurrencyTuple = namedtuple('CurrencyTuple', (
+    'code', 'name'))
 
 
 class MetsyncAdapter(BaseAdapter):
@@ -27,8 +31,8 @@ class MetsyncAdapter(BaseAdapter):
     def get_currencies(self):
         data = self._request('Currencies/getCurrencyRates')
         result = []
-        for k in data:
-            result.append((k, k))
+        for key in data.keys():
+            result.append(CurrencyTuple(code=key, name=key))
         return result
 
     def get_exchangerates(self, base):
