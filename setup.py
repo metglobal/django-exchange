@@ -15,6 +15,7 @@ setup(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     install_requires=[
         'openexchangerates'
+        'backoff'
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
