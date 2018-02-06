@@ -62,16 +62,16 @@ def get_rates(currencies):
                 sources.append(source)
                 targets.append(target)
     else:
-        rate_map = {c: None for c in currencies}
+        rate_map = dict(((c, None) for c in currencies))
         sources = map(itemgetter(0), currencies)
         targets = map(itemgetter(1), currencies)
 
     rates = ExchangeRate.objects.filter(
         source__code__in=sources,
         target__code__in=targets).values_list(
-        'source__code',
-        'target__code',
-        'rate')
+            'source__code',
+            'target__code',
+            'rate')
 
     for source, target, rate in rates:
         key = (source, target)

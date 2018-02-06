@@ -10,3 +10,5 @@ DATABASES = {
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 OPENEXCHANGERATES_API_KEY = '<DUMMY_KEY>'
+
+SECRET_KEY = '<DummySecret>'

@@ -29,8 +29,10 @@ def _get_cache_key(source_currency, target_currency):
 
 def update_rates_cached():
     rates = ExchangeRate.objects.all()
-    cache_map = {_get_cache_key(rate.source.code, rate.target.code): rate.rate
-                 for rate in rates}
+    cache_map = dict(
+        ((_get_cache_key(rate.source.code, rate.target.code), rate.rate)
+         for rate in rates)
+    )
     cache.set_many(cache_map, timeout=CACHE_TIMEOUT)
     return cache_map
 
@@ -47,6 +49,6 @@ def get_rate_cached(source_currency, target_currency):
 
 
 def get_rates_cached(args_list):
-    key_map = {_get_cache_key(*args): args for args in args_list}
+    key_map = dict(((_get_cache_key(*args), args) for args in args_list))
     cache_map = cache.get_many(key_map.keys())
-    return {key_map[key]: cache_map.get(key) for key in key_map.keys()}
+    return dict(((key_map[key], cache_map.get(key)) for key in key_map.keys()))
