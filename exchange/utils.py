@@ -18,6 +18,10 @@ def import_class(class_path):
     """
     try:
         from django.utils.importlib import import_module
+    except ImportError:
+        from importlib import import_module
+
+    try:
         module_name = '.'.join(class_path.split(".")[:-1])
         mod = import_module(module_name)
         return getattr(mod, class_path.split(".")[-1])

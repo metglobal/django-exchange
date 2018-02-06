@@ -1,4 +1,4 @@
-from django.core.cache import get_cache
+from .compat import get_cache
 from django.conf import settings
 
 from exchange.models import ExchangeRate
