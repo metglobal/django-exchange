@@ -76,7 +76,7 @@ class BaseAdapter(object):
         usd_source = usd_rates[source]
         usd_target = usd_rates[target]
         rate = Decimal(usd_target) * (Decimal(1.0) / Decimal(usd_source))
-        rate = rate.quantize(Decimal('0.123456'))  # round to 6 decimal places
+        rate = rate.quantize(Decimal('0.12345678'))  # round to 8 decimal places
         return rate
 
     def get_currencies(self):
