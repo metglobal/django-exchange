@@ -23,7 +23,7 @@ class BaseAdapter(object):
 
         # Currencies which exist on db (not exist on currencies coming from
         # openexchangerates api) should be deleted from db.
-        currencies_on_db = list(Currency.objects.all())
+        currencies_on_db = list(Currency.objects.exclude(code='BTC'))
         for currency in currencies_on_db:
             if (currency.code, currency.name) not in currencies:
                 currency.delete()
