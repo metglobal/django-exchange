@@ -11,5 +11,5 @@ class Command(BaseCommand):
 
         try:
             update_rates()
-        except Exception, e:
+        except Exception as e:
             raise CommandError(e)
